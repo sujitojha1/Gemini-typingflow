@@ -1,7 +1,7 @@
-// Secure Background Proxy for Google Gemini Flash Lite 3.0
+// Secure Background Proxy for Google Gemini Flash Lite 3.1 Preview
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "proxy_gemini_api") {
-        console.log("Routing content to Gemini Flash Lite 3.0 API...");
+        console.log("Routing content to Gemini Flash Lite 3.1 Preview API...");
         callGeminiAPI(request.payload).then(sendResponse);
         return true; // Keep channel open for asynchronous fetch
     }
@@ -42,7 +42,7 @@ async function callGeminiAPI(payload) {
         return { error: "API Key not configured. Please initialize your key in the Options panel." };
     }
 
-    const MODEL = "gemini-3.0-flash-lite"; // Invoking the specified Gemini 3.0 Lite model
+    const MODEL = "gemini-3.1-flash-lite-preview"; // Invoking the specified Gemini 3.1 Lite Preview model
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
 
     const fullPrompt = SYSTEM_PROMPT + "\n\nRAW SCRAPED CONTENT:\n" + JSON.stringify(payload);

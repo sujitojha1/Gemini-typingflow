@@ -3,10 +3,10 @@
 ## Phase 1: Foundation & API Security
 - [x] Initialize project with Manifest V3.
 - [x] Create `options.html` and `options.js` for secure local storage of the Gemini API Key.
-- [x] Build the `background.js` architecture to act as a secure proxy to Google Gemini Flash Lite 3.0 API, bypassing content-script CORS restrictions.
+- [x] Build the `background.js` architecture to act as a secure proxy to Google Gemini Flash Lite 3.1 Preview API, bypassing content-script CORS restrictions.
 
 ## Phase 2: The LLM Processing Engine
-- [x] Develop the core Prompt Engineering strategy in `background.js`. It must enforce a strict JSON schema output from Gemini Flash Lite 3.0:
+- [x] Develop the core Prompt Engineering strategy in `background.js`. It must enforce a strict JSON schema output from Gemini Flash Lite 3.1 Preview:
     - `tldr`: A single-sentence summary of the page.
     - `tags`: Array of semantic domain tags (e.g., `#productivity`, `#neuroscience`).
     - `nuggets`: Array of objects, each grouping the original author's text chunks logically together (`text`), alongside a related image reference (`img_src` or `null` if none exist).
@@ -30,5 +30,5 @@
 
 ## Phase 6: Terminal Popup & Polish
 - [x] Build the terminal-styled `popup.html` interface as the main user control center.
-- [x] Implement clear UI loader states (e.g., "Extracting Context...", "Synthesizing with Gemini Flash Lite 3.0...", "Rendering Image Assets...") to manage expectations during asynchronous LLM calls.
+- [x] Implement clear UI loader states (e.g., "Extracting Context...", "Synthesizing with Gemini Flash Lite 3.1 Preview...", "Rendering Image Assets...") to manage expectations during asynchronous LLM calls.
 - [x] Final testing across different webpage frameworks (Medium, Wikipedia, standard blogs) and packaging for extension distribution.

@@ -2,7 +2,7 @@
 
 Welcome to **Gemini TypingFlow**, an intelligent evolution of the original [typingflow-extension](https://github.com/sujitojha1/typingflow-extension)!
 
-Instead of manually slicing up HTML to find takeaways or running rote typing exams, this version uses the **Google Gemini Flash Lite 3.0 API** to deeply contextualize web content and synthesize it straight into your personal knowledge base.
+Instead of manually slicing up HTML to find takeaways or running rote typing exams, this version uses the **Google Gemini Flash Lite 3.1 Preview API** to deeply contextualize web content and synthesize it straight into your personal knowledge base.
 
 ## 🚀 Concept & Core Features
 

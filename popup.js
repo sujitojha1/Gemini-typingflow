@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
-                updateLoader('Synthesizing with Gemini Flash Lite 3.0');
+                updateLoader('Synthesizing with Gemini Flash Lite 3.1 Preview');
                 chrome.runtime.sendMessage({ action: "proxy_gemini_api", payload: resp.payload }, (apiResp) => {
                     if (chrome.runtime.lastError) {
                         updateLoader('Error: Background Service Worker offline');
