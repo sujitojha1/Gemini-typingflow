@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLoader(msg) {
         loader.style.display = 'block';
-        loader.innerText = \`\${msg}...\`;
+        loader.innerText = `${msg}...`;
     }
     
     function hideLoader() { loader.style.display = 'none'; }
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (apiResp.error) {
-                        updateLoader(\`Error: \${apiResp.error}\`);
+                        updateLoader(`Error: ${apiResp.error}`);
                         btnExtract.disabled = false;
                         return;
                     }
