@@ -3,6 +3,11 @@
   "name": "Gemini TypingFlow Context Engine",
   "version": "2.0.0",
   "description": "Transforms web articles into active recall typing sessions mapped with Hybrid Contextual Visuals using Gemini Flash Lite 3.1 Preview.",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "permissions": [
     "activeTab",
     "scripting",
@@ -12,7 +17,8 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
   },
   "options_ui": {
     "page": "options.html",
