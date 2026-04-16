@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLoader(msg) {
         loader.style.display = 'block';
-        loader.innerText = `> status: ${msg}...`;
+        loader.innerText = \`> status: \${msg}...\`;
     }
     
     function hideLoader() { loader.style.display = 'none'; }
@@ -23,15 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const tabId = tabs[0].id;
 
-            chrome.tabs.sendMessage(tabId, { action: "extract_content" }, (resp) => {
-                // Handle the case where content.js isn't running on the page yet
-                if (chrome.runtime.lastError) {
-                    console.error(chrome.runtime.lastError.message);
-                    updateLoader('Init Failed: Please refresh the web page & try again!');
-                    btnExtract.disabled = false;
-                    return;
-                }
-
+            const handleExtractionResponse = (resp) => {
                 if (!resp || !resp.payload) {
                     updateLoader('DOM Extraction Failed');
                     btnExtract.disabled = false;
@@ -47,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     if (apiResp.error) {
-                        updateLoader(`Error: ${apiResp.error}`);
+                        updateLoader(\`Error: \${apiResp.error}\`);
                         btnExtract.disabled = false;
                         return;
                     }
@@ -65,6 +57,44 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnExtract.disabled = false;
                     });
                 });
+            };
+
+            const attemptExtraction = () => {
+                chrome.tabs.sendMessage(tabId, { action: "extract_content" }, (resp) => {
+                    if (chrome.runtime.lastError) {
+                        updateLoader('Init Failed: Chrome restricted script execution on this page.');
+                        btnExtract.disabled = false;
+                        return;
+                    }
+                    handleExtractionResponse(resp);
+                });
+            };
+
+            // Attempt primary messaging sequence
+            chrome.tabs.sendMessage(tabId, { action: "extract_content" }, (resp) => {
+                // If content script isn't loaded (user recently updated the extension and didn't refresh the page)
+                if (chrome.runtime.lastError) {
+                    console.warn("Content script disconnected. Automatically injecting via execution pipeline...");
+                    updateLoader('Dynamically Injecting Content Script');
+                    
+                    chrome.scripting.executeScript({
+                        target: { tabId: tabId },
+                        files: ['content.js']
+                    }, () => {
+                        if (chrome.runtime.lastError) {
+                            console.error(chrome.runtime.lastError.message);
+                            updateLoader('Init Failed: Chrome restricted injection on this tab.');
+                            btnExtract.disabled = false;
+                            return;
+                        }
+                        // Give the newly injected script 250ms to attach its listeners, then hit it again
+                        setTimeout(attemptExtraction, 250);
+                    });
+                    return;
+                }
+                
+                // If the script was already there, process naturally
+                handleExtractionResponse(resp);
             });
         });
     });
