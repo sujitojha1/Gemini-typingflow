@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateLoader(msg) {
         loader.style.display = 'block';
-        loader.innerText = \`> status: \${msg}...\`;
+        loader.innerText = \`\${msg}...\`;
     }
     
     function hideLoader() { loader.style.display = 'none'; }
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                         hideLoader();
                         btnType.disabled = false;
-                        btnExtract.innerText = "> re-run extraction()";
+                        btnExtract.innerText = "Extract New Insights";
                         btnExtract.disabled = false;
                     });
                 });
