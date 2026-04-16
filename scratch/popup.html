@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 260px;
+      background: #0d0c0b;
+      font-family: 'Menlo', 'Monaco', ui-monospace, 'Courier New', monospace;
+      color: #ECEBDE;
+    }
+    .window { border: 1px solid #1e1d1b; }
+    .titlebar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #1a1917;
+      background: #111010;
+    }
+    .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .path { font-size: 10px; color: #3a3834; margin-left: 6px; letter-spacing: 0.3px; }
+    .cmds { padding: 4px 0; }
+    .term-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #111010;
+      padding: 11px 14px;
+      color: #ECEBDE;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: left;
+      gap: 8px;
+      transition: background 0.1s;
+    }
+    .term-btn:last-child { border-bottom: none; }
+    .term-btn:hover:not(:disabled) { background: #161514; }
+    .term-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+    .p { color: #D97757; }
+    .term-btn:disabled .p { color: #2a2926; }
+    .fn { color: #72BE47; }
+    .term-btn:disabled .fn { color: inherit; }
+    .statusbar {
+      border-top: 1px solid #1a1917;
+      padding: 8px 14px;
+      display: flex;
+      gap: 20px;
+      font-size: 10px;
+      color: #3a3834;
+    }
+    .sv { color: #D97757; }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dot" style="background:#ED655A"></div>
+      <div class="dot" style="background:#E1C04C"></div>
+      <div class="dot" style="background:#72BE47"></div>
+      <span class="path">~/typingflow</span>
+    </div>
+    <div class="cmds">
+      <button id="btn-beautify" class="term-btn">
+        <span class="p">›</span><span><span class="fn">beautify</span>_nuggets()</span>
+      </button>
+      <button id="btn-type" class="term-btn" disabled>
+        <span class="p">›</span><span><span class="fn">typing</span>_flow()</span>
+      </button>
+      <button id="btn-save" class="term-btn" disabled>
+        <span class="p">›</span><span><span class="fn">save</span>_html()</span>
+      </button>
+    </div>
+    <div class="statusbar">
+      <span>chars <span class="sv" id="m-chars">0</span></span>
+      <span>time <span class="sv" id="m-time">0m</span></span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

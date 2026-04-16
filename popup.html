@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { width: 280px; background: #0d0c0b; font-family: 'Menlo', 'Monaco', ui-monospace, 'Courier New', monospace; color: #ECEBDE; padding: 12px; }
+    .window { border: 1px solid #1e1d1b; border-radius: 6px; overflow: hidden; background: #111010; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .titlebar { display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-bottom: 1px solid #1a1917; background: #1a1917; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .path { font-size: 11px; color: #a19d96; margin-left: 6px; }
+    .content { padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .btn { background: #1e1d1b; border: 1px solid #3a3834; color: #ECEBDE; font-family: inherit; font-size: 12px; padding: 10px; cursor: pointer; border-radius: 4px; text-align: left; transition: all 0.2s; }
+    .btn:hover:not(:disabled) { background: #4a8cd4; color: #0d0c0b; border-color: #4a8cd4; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .loader { display: none; font-size: 11px; color: #4a8cd4; margin-top: 5px; }
+    .options-link { text-align: center; color: #5a5550; font-size: 10px; cursor: pointer; display: block; padding-top: 10px; border-top: 1px solid #1a1917; text-decoration: none; }
+    .options-link:hover { color: #a19d96; }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <div class="dot" style="background:#ED655A"></div>
+      <div class="dot" style="background:#E1C04C"></div>
+      <div class="dot" style="background:#72BE47"></div>
+      <span class="path">gemini_typing_flow</span>
+    </div>
+    <div class="content">
+      <button id="btn-extract" class="btn">> gemini.extract()</button>
+      <div id="loader" class="loader"></div>
+      <button id="btn-type" class="btn" disabled>> typing_mode()</button>
+      <button id="btn-save" class="btn" disabled>> save_html()</button>
+      <a href="#" id="optionsLink" class="options-link">Settings / API Key</a>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
