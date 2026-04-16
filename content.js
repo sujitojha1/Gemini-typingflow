@@ -63,7 +63,7 @@ const INJECT_CSS = `
     font-size: 12px; color: #888; font-family: 'Menlo', monospace; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px;
   }
   .tf-nav-btns { display: flex; gap: 20px; }
-  .tf-nav-btn { background: none; border: none; color: #4a8cd4; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 0; outline: none; }
+  .tf-nav-btn { background: none; border: none; color: #4a8cd4; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; padding: 0; outline: none; margin: 0; }
   .tf-nav-btn.disabled { color: #444; cursor: not-allowed; }
   
   .tf-main-container {
@@ -71,10 +71,10 @@ const INJECT_CSS = `
   }
   
   .tf-image-panel {
-    flex: 0 0 400px; border-radius: 8px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.4);
-    aspect-ratio: 1; background: #1a1a1a; display: flex; justify-content: center; align-items: center; position: sticky; top: 180px;
+    flex: 0 0 450px; border-radius: 8px; overflow: hidden; box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+    background: #1a1a1a; display: flex; justify-content: center; align-items: flex-start; position: sticky; top: 120px;
   }
-  .tf-image-panel img { width: 100%; height: 100%; object-fit: cover; }
+  .tf-image-panel img { width: 100%; height: auto; object-fit: contain; display: block; max-height: 500px; }
   
   .tf-typing-panel { flex: 1; position: relative; }
   .tf-nugget-name { color: #666; font-size: 13px; margin-bottom: 24px; font-family: 'Menlo', monospace; }
@@ -93,12 +93,12 @@ const INJECT_CSS = `
 `;
 
 function mountUI(data) {
-    if(!document.getElementById('tf-style')) {
-        const s = document.createElement('style');
-        s.id = 'tf-style';
-        s.textContent = INJECT_CSS;
-        document.head.appendChild(s);
-    }
+    let s = document.getElementById('tf-style');
+    if (s) s.remove();
+    s = document.createElement('style');
+    s.id = 'tf-style';
+    s.textContent = INJECT_CSS;
+    document.head.appendChild(s);
     sessionData = data;
 }
 
