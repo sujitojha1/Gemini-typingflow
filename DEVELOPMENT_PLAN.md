@@ -1,9 +1,9 @@
 # Development Plan: Gemini TypingFlow
 
 ## Phase 1: Foundation & API Security
-- [ ] Initialize project with Manifest V3.
-- [ ] Create `options.html` and `options.js` for secure local storage of the Gemini API Key.
-- [ ] Build the `background.js` architecture to act as a secure proxy to Google Gemini Flash Lite 3.0 API, bypassing content-script CORS restrictions.
+- [x] Initialize project with Manifest V3.
+- [x] Create `options.html` and `options.js` for secure local storage of the Gemini API Key.
+- [x] Build the `background.js` architecture to act as a secure proxy to Google Gemini Flash Lite 3.0 API, bypassing content-script CORS restrictions.
 
 ## Phase 2: The LLM Processing Engine
 - [ ] Develop the core Prompt Engineering strategy in `background.js`. It must enforce a strict JSON schema output from Gemini Flash Lite 3.0:
