@@ -42,7 +42,7 @@ async function callGeminiAPI(payload) {
         return { error: "API Key not configured. Please initialize your key in the Options panel." };
     }
     
-    const MODEL = "gemini-1.5-flash-latest"; // Using 1.5 flash as proxy endpoint for 3.0 logic
+    const MODEL = "gemini-3.0-flash-lite"; // Invoking the specified Gemini 3.0 Lite model
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
     
     const fullPrompt = SYSTEM_PROMPT + "\n\nRAW SCRAPED CONTENT:\n" + JSON.stringify(payload);
