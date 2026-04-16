@@ -15,18 +15,40 @@ document.addEventListener('DOMContentLoaded', () => {
         updateLoader('Parsing Sequence');
 
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (!tabs || tabs.length === 0) {
+                updateLoader('Error: No active tab found');
+                btnExtract.disabled = false;
+                return;
+            }
+            
             const tabId = tabs[0].id;
 
             chrome.tabs.sendMessage(tabId, { action: "extract_content" }, (resp) => {
+                // Handle the case where content.js isn't running on the page yet
+                if (chrome.runtime.lastError) {
+                    console.error(chrome.runtime.lastError.message);
+                    updateLoader('Init Failed: Please refresh the web page & try again!');
+                    btnExtract.disabled = false;
+                    return;
+                }
+
                 if (!resp || !resp.payload) {
                     updateLoader('DOM Extraction Failed');
+                    btnExtract.disabled = false;
                     return;
                 }
 
                 updateLoader('Synthesizing with Gemini Flash Lite 3.0');
                 chrome.runtime.sendMessage({ action: "proxy_gemini_api", payload: resp.payload }, (apiResp) => {
+                    if (chrome.runtime.lastError) {
+                        updateLoader('Error: Background Service Worker offline');
+                        btnExtract.disabled = false;
+                        return;
+                    }
+
                     if (apiResp.error) {
                         updateLoader(`Error: ${apiResp.error}`);
+                        btnExtract.disabled = false;
                         return;
                     }
 
@@ -34,6 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateLoader('Mounting Data Structure');
                     
                     chrome.tabs.sendMessage(tabId, { action: "mount_ui", data: json }, () => {
+                        if (chrome.runtime.lastError) {
+                            console.error(chrome.runtime.lastError.message);
+                        }
                         hideLoader();
                         btnType.disabled = false;
                         btnExtract.innerText = "> re-run extraction()";
@@ -46,7 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnType.addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            chrome.tabs.sendMessage(tabs[0].id, { action: "open_overlay" });
+            chrome.tabs.sendMessage(tabs[0].id, { action: "open_overlay" }, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("Overlay error:", chrome.runtime.lastError.message);
+                }
+            });
         });
     });
 });
