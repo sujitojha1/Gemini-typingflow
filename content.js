@@ -117,7 +117,7 @@ function renderCurrentNugget() {
 
     const tagsHtml = (sessionData.tags || []).map(t => \`<div class="tf-tag">\${t}</div>\`).join('');
     let charsHtml = '';
-    const textToType = nugget.text.replace(/\\s+/g, ' ');
+    const textToType = nugget.text.replace(/\s+/g, ' ');
     
     for (let i = 0; i < textToType.length; i++) {
         // Fix: Do not force &nbsp;, output literal spaces so the browser treats it as text and allows wrapping
