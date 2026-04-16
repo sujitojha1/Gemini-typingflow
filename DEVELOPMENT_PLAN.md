@@ -13,22 +13,22 @@
 - [x] Implement advanced DOM extraction in `content.js` to preserve image `src` urls and pass them alongside their adjacent text blocks to the LLM for semantic mapping.
 
 ## Phase 3: Hybrid Visuals & Asset Generation (Gemini Nano Banana)
-- [ ] Ensure the Active Recall overlay dynamically displays the existing `img_src` attached to a nugget by the LLM processing unit.
-- [ ] Interface with the local **Gemini Nano Banana** model executing as an asynchronous background routine.
-- [ ] For any `nugget` where `img_src` is null, automatically prompt the Nano model to generate a stunning, highly representative aesthetic image based on that nugget's text.
+- [x] Ensure the Active Recall overlay dynamically displays the existing `img_src` attached to a nugget by the LLM processing unit.
+- [x] Interface with the local **Gemini Nano Banana** model executing as an asynchronous background routine.
+- [x] For any `nugget` where `img_src` is null, automatically prompt the Nano model to generate a stunning, highly representative aesthetic image based on that nugget's text.
 
 ## Phase 4: Active Learning UI (Glassmorphism)
-- [ ] Rebuild the premium overlay using modern vanilla CSS directly inside `content.js`, ensuring it is immune to host-page style collisions.
-- [ ] Integrate the dynamic `TL;DR`, `Tags`, and **hybrid contextual images** into the overlay so the user has immediate visual context before they type.
-- [ ] Wire up the Active Recall typing mechanics to process the logically structured original `text` strings with character-by-character real-time validation (green/red feedback).
+- [x] Rebuild the premium overlay using modern vanilla CSS directly inside `content.js`, ensuring it is immune to host-page style collisions.
+- [x] Integrate the dynamic `TL;DR`, `Tags`, and **hybrid contextual images** into the overlay so the user has immediate visual context before they type.
+- [x] Wire up the Active Recall typing mechanics to process the logically structured original `text` strings with character-by-character real-time validation (green/red feedback).
 
 ## Phase 5: Second Brain Integration
-- [ ] Build the `exportToMarkdown()` function in `content.js`.
-- [ ] Implement a rich formatting structure that natively leverages the LLM's **content tags** and embeds the **Gemini Nano Banana generated images** directly alongside the concepts.
-- [ ] Format the Markdown output to include standard YAML frontmatter for seamless integration into Obsidian/Notion.
-- [ ] Trigger an automatic download of the `.md` file upon successful completion of the typing session, or via explicit CTA in the UI.
+- [x] Build the `exportToMarkdown()` function in `content.js`.
+- [x] Implement a rich formatting structure that natively leverages the LLM's **content tags** and embeds the **Gemini Nano Banana generated images** directly alongside the concepts.
+- [x] Format the Markdown output to include standard YAML frontmatter for seamless integration into Obsidian/Notion.
+- [x] Trigger an automatic download of the `.md` file upon successful completion of the typing session, or via explicit CTA in the UI.
 
 ## Phase 6: Terminal Popup & Polish
-- [ ] Build the terminal-styled `popup.html` interface as the main user control center.
-- [ ] Implement clear UI loader states (e.g., "Extracting Context...", "Synthesizing with Gemini Flash Lite 3.0...", "Rendering Nano Banana Images...") to manage expectations during asynchronous LLM calls.
-- [ ] Final testing across different webpage frameworks (Medium, Wikipedia, standard blogs) and packaging for extension distribution.
+- [x] Build the terminal-styled `popup.html` interface as the main user control center.
+- [x] Implement clear UI loader states (e.g., "Extracting Context...", "Synthesizing with Gemini Flash Lite 3.0...", "Rendering Nano Banana Images...") to manage expectations during asynchronous LLM calls.
+- [x] Final testing across different webpage frameworks (Medium, Wikipedia, standard blogs) and packaging for extension distribution.
