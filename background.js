@@ -7,6 +7,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+const SYSTEM_PROMPT = `You are an expert learning engine and strict JSON structuring agent. 
+You are given a chronologically ordered array of text chunks and image URLs scraped from an article. 
+Your task is to structure this content into a rich learning payload. 
+
+RULES:
+1. Generate a 'tldr' (a single-sentence summary of the entire page).
+2. Auto-extract an array of 3-5 semantic 'tags' (e.g., "#machinelearning", "#design").
+3. Group the logically related original text chunks together into manageable semantic "nuggets" to preserve the author's voice. Do NOT heavily rewrite the text, just intelligently chunk it.
+4. If an image URL is highly relevant to a specific nugget based on chronological proximity or context, map its URL to 'img_src'. If no image is relevant for that nugget, map 'img_src' as null.
+
+EXPECTED JSON SCHEMA:
+{
+  "tldr": "string",
+  "tags": ["string"],
+  "nuggets": [
+    {
+      "text": "The logically grouped original text chunks representing this concept.",
+      "img_src": "url_string_or_null"
+    }
+  ]
+}`;
+
 async function callGeminiAPI(payload) {
     const { geminiApiKey } = await chrome.storage.sync.get('geminiApiKey');
     
@@ -14,14 +36,19 @@ async function callGeminiAPI(payload) {
         return { error: "API Key not configured. Please initialize your key in the Options panel." };
     }
     
-    const MODEL = "gemini-3.0-flash-lite"; // As per Phase 1 spec
+    const MODEL = "gemini-3.0-flash-lite"; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
+    
+    const fullPrompt = SYSTEM_PROMPT + "\n\nRAW SCRAPED CONTENT:\n" + JSON.stringify(payload);
     
     try {
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload) // Expected payload will contain JSON schema enforcement config in Phase 2
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: fullPrompt }] }],
+                generationConfig: { response_mime_type: "application/json" }
+            })
         });
         
         if (!response.ok) {
@@ -30,8 +57,9 @@ async function callGeminiAPI(payload) {
         }
         
         const data = await response.json();
-        return { success: true, api_response: data };
+        const jsonText = data.candidates[0].content.parts[0].text;
+        return { success: true, api_response: JSON.parse(jsonText) };
     } catch (error) {
-        return { error: `Network exception in Service Worker: ${error.message}` };
+        return { error: `Network/Parsing exception in Service Worker: ${error.message}` };
     }
 }

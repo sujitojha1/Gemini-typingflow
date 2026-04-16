@@ -6,11 +6,11 @@
 - [x] Build the `background.js` architecture to act as a secure proxy to Google Gemini Flash Lite 3.0 API, bypassing content-script CORS restrictions.
 
 ## Phase 2: The LLM Processing Engine
-- [ ] Develop the core Prompt Engineering strategy in `background.js`. It must enforce a strict JSON schema output from Gemini Flash Lite 3.0:
+- [x] Develop the core Prompt Engineering strategy in `background.js`. It must enforce a strict JSON schema output from Gemini Flash Lite 3.0:
     - `tldr`: A single-sentence summary of the page.
     - `tags`: Array of semantic domain tags (e.g., `#productivity`, `#neuroscience`).
     - `nuggets`: Array of objects, each grouping the original author's text chunks logically together (`text`), alongside a related image reference (`img_src` or `null` if none exist).
-- [ ] Implement advanced DOM extraction in `content.js` to preserve image `src` urls and pass them alongside their adjacent text blocks to the LLM for semantic mapping.
+- [x] Implement advanced DOM extraction in `content.js` to preserve image `src` urls and pass them alongside their adjacent text blocks to the LLM for semantic mapping.
 
 ## Phase 3: Hybrid Visuals & Asset Generation (Gemini Nano Banana)
 - [ ] Ensure the Active Recall overlay dynamically displays the existing `img_src` attached to a nugget by the LLM processing unit.
