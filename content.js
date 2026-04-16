@@ -319,6 +319,9 @@ if (!window.geminiTfEventListening) {
             sendResponse({ success: true });
         } else if (request.action === 'open_overlay') {
             openOverlay();
+            sendResponse({ success: true });
+        } else if (request.action === 'check_session') {
+            sendResponse({ hasSession: !!sessionData });
         }
     });
 }

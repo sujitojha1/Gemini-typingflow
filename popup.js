@@ -10,6 +10,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function hideLoader() { loader.style.display = 'none'; }
 
+    // Init Logic: Check if the content script already has processing done for this tab
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+        if (!tabs || tabs.length === 0) return;
+        chrome.tabs.sendMessage(tabs[0].id, { action: "check_session" }, (resp) => {
+            if (!chrome.runtime.lastError && resp && resp.hasSession) {
+                btnType.disabled = false;
+                btnExtract.innerText = "Extract New Insights";
+            }
+        });
+    });
+
     btnExtract.addEventListener('click', () => {
         btnExtract.disabled = true;
         updateLoader('Parsing Sequence');
