@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     const json = apiResp.api_response;
-                    updateLoader('Mounting Data Structure');
+                    updateLoader('Rendering Image Assets via Flash 2.5');
                     
                     chrome.tabs.sendMessage(tabId, { action: "mount_ui", data: json }, () => {
                         if (chrome.runtime.lastError) {

@@ -5,9 +5,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         callGeminiAPI(request.payload).then(sendResponse);
         return true; // Keep channel open for asynchronous fetch
     }
-    
-    if (request.action === "generate_nano_banana_image") {
-        console.log("Routing request to local Gemini Nano Banana...");
+
+    if (request.action === "generate_image_asset") {
+        console.log("Routing request to gemini-2.5-flash-image...");
         generateContextualImage(request.payload).then(sendResponse);
         return true;
     }
@@ -37,16 +37,16 @@ EXPECTED JSON SCHEMA:
 
 async function callGeminiAPI(payload) {
     const { geminiApiKey } = await chrome.storage.sync.get('geminiApiKey');
-    
+
     if (!geminiApiKey) {
         return { error: "API Key not configured. Please initialize your key in the Options panel." };
     }
-    
+
     const MODEL = "gemini-3.0-flash-lite"; // Invoking the specified Gemini 3.0 Lite model
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
-    
+
     const fullPrompt = SYSTEM_PROMPT + "\n\nRAW SCRAPED CONTENT:\n" + JSON.stringify(payload);
-    
+
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -56,12 +56,12 @@ async function callGeminiAPI(payload) {
                 generationConfig: { response_mime_type: "application/json" }
             })
         });
-        
+
         if (!response.ok) {
             const errorData = await response.json();
             return { error: `Google API Error (${response.status}): ${errorData.error?.message || response.statusText}` };
         }
-        
+
         const data = await response.json();
         const jsonText = data.candidates[0].content.parts[0].text;
         return { success: true, api_response: JSON.parse(jsonText) };
@@ -70,16 +70,46 @@ async function callGeminiAPI(payload) {
     }
 }
 
-// Phase 3: Background Asset Generation (Gemini Nano Banana Simulation Proxy)
+// Phase 3: Background Asset Generation (gemini-2.5-flash-image)
 async function generateContextualImage({ text, tags }) {
-    console.log("Invoking Gemini Nano Banana local model for asset generation...");
-    // Simulating local inference delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    console.log("Invoking gemini-2.5-flash-image for asset generation...");
     
-    const primaryTag = tags && tags.length > 0 ? tags[0].replace('#', '') : 'abstract';
-    const randomSeed = Math.floor(Math.random() * 1000);
-    // Reliable remote fallback representative image based on tags
-    const simulatedImageUrl = `https://picsum.photos/seed/${primaryTag}${randomSeed}/800/600`;
+    const { geminiApiKey } = await chrome.storage.sync.get('geminiApiKey');
+    if (!geminiApiKey) return { success: false, error: "API Key Missing" };
 
-    return { success: true, img_src: simulatedImageUrl };
+    const MODEL = "gemini-2.5-flash-image";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
+    const prompt = `Create a visually stunning, premium representative asset or abstract representation for this learning concept. Context: ${text} Tags: ${(tags||[]).join(', ')}. Return nothing but the image URL or Base64 string directly.`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                console.warn(`gemini-2.5-flash-image returned 404. Falling back to semantic placeholder.`);
+                const primaryTag = tags && tags.length > 0 ? tags[0].replace('#', '') : 'abstract';
+                return { success: true, img_src: `https://picsum.photos/seed/${primaryTag}${Math.floor(Math.random()*1000)}/800/600` };
+            }
+            return { error: `Image API Error: ${response.statusText}` };
+        }
+
+        const data = await response.json();
+        const part = data.candidates[0].content.parts[0];
+        // Handle response assuming either plain text URL return or inlineData component
+        let imgSrc = part.text || part.inlineData?.data;
+        if (imgSrc && part.inlineData) {
+            imgSrc = `data:${part.inlineData.mimeType};base64,${imgSrc}`;
+        } else if (imgSrc && !imgSrc.startsWith("http") && !imgSrc.startsWith("data:")) {
+             imgSrc = `https://picsum.photos/seed/generated/800/600`; // Failsafe fallback
+        }
+        return { success: true, img_src: imgSrc };
+    } catch (e) {
+        return { error: e.message };
+    }
 }

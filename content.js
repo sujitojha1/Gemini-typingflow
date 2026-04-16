@@ -96,10 +96,10 @@ function renderCurrentNugget() {
     if (nugget.img_src) {
         visualHtml = `<img src="${nugget.img_src}" alt="Contextual Asset" />`;
     } else {
-        // Phase 3: Gemini Nano Banana generation request
-        visualHtml = `<div class="tf-nano-loader" id="tf-nano-${currentNuggetIndex}">🍌 Rendering visual via Gemini Nano Banana...</div>`;
+        // Phase 3: Gemini 2.5 Flash Image generation request
+        visualHtml = `<div class="tf-nano-loader" id="tf-nano-${currentNuggetIndex}">🖼️ Rendering visual via Gemini 2.5 Flash Image...</div>`;
         chrome.runtime.sendMessage({ 
-            action: "generate_nano_banana_image", 
+            action: "generate_image_asset", 
             payload: { text: nugget.text, tags: sessionData.tags } 
         }, (resp) => {
             if (resp && resp.success) {
@@ -219,7 +219,7 @@ source: ${window.location.href}
         md += `\n### Insight ${i+1}\n\n`;
         md += `> ${n.text}\n\n`;
         if (n.img_src) {
-            // Embeds hybrid contextual images (DOM + Nano Banana) natively
+            // Embeds hybrid contextual images (DOM + Gemini Image Gen) natively
             md += `![Contextual Asset](${n.img_src})\n\n`;
         }
     });
