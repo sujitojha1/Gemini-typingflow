@@ -33,7 +33,7 @@ let sessionData = null;
 let currentNuggetIndex = 0;
 let overlayWrapper = null;
 
-const INJECT_CSS = `
+const INJECT_CSS = \`
   @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   #tf-overlay-root {
     position: fixed; inset: 0; z-index: 2147483647; background: rgba(10, 10, 10, 0.85); backdrop-filter: blur(16px);
@@ -60,7 +60,7 @@ const INJECT_CSS = `
   .tf-export-btn { display: block; padding: 16px 32px; background: #4a8cd4; color: #fff; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; margin: 40px auto 0; transition: transform 0.2s; }
   .tf-export-btn:hover { transform: scale(1.05); }
   .tf-nano-loader { font-size: 12px; color: #E1C04C; animation: pulse 1s infinite; padding: 20px; text-align: center; }
-`;
+\`;
 
 function mountUI(data) {
     if(!document.getElementById('tf-style')) {
@@ -94,17 +94,17 @@ function renderCurrentNugget() {
     let visualHtml = '';
     
     if (nugget.img_src) {
-        visualHtml = `<img src="${nugget.img_src}" alt="Contextual Asset" />`;
+        visualHtml = \`<img src="\${nugget.img_src}" alt="Contextual Asset" />\`;
     } else {
         // Phase 3: Gemini 2.5 Flash Image generation request
-        visualHtml = `<div class="tf-nano-loader" id="tf-nano-${currentNuggetIndex}">🖼️ Rendering visual via Gemini 2.5 Flash Image...</div>`;
+        visualHtml = \`<div class="tf-nano-loader" id="tf-nano-\${currentNuggetIndex}">🖼️ Rendering visual via Gemini 2.5 Flash Image...</div>\`;
         chrome.runtime.sendMessage({ 
             action: "generate_image_asset", 
             payload: { text: nugget.text, tags: sessionData.tags } 
         }, (resp) => {
             if (resp && resp.success) {
                 sessionData.nuggets[currentNuggetIndex].img_src = resp.img_src; // Save for Markdown export
-                const imgContainer = document.getElementById(`tf-nano-${currentNuggetIndex}`);
+                const imgContainer = document.getElementById(\`tf-nano-\${currentNuggetIndex}\`);
                 if (imgContainer) {
                     const img = document.createElement('img');
                     img.src = resp.img_src;
@@ -115,33 +115,41 @@ function renderCurrentNugget() {
         });
     }
 
-    const tagsHtml = (sessionData.tags || []).map(t => `<div class="tf-tag">${t}</div>`).join('');
+    const tagsHtml = (sessionData.tags || []).map(t => \`<div class="tf-tag">\${t}</div>\`).join('');
     let charsHtml = '';
-    const textToType = nugget.text.replace(/\s+/g, ' ');
+    const textToType = nugget.text.replace(/\\s+/g, ' ');
     
     for (let i = 0; i < textToType.length; i++) {
-        charsHtml += `<span class="tf-char">${textToType[i] === ' ' ? '&nbsp;' : textToType[i]}</span>`;
+        // Fix: Do not force &nbsp;, output literal spaces so the browser treats it as text and allows wrapping
+        charsHtml += \`<span class="tf-char">\${textToType[i]}</span>\`;
     }
 
-    overlayWrapper.innerHTML = `
+    overlayWrapper.innerHTML = \`
         <div class="tf-header">
             <div>
-                <div class="tf-tldr">"${sessionData.tldr}"</div>
-                <div class="tf-tags">${tagsHtml}</div>
+                <div class="tf-tldr">"\${sessionData.tldr}"</div>
+                <div class="tf-tags">\${tagsHtml}</div>
             </div>
             <button class="tf-close" id="tf-close-btn">&times;</button>
         </div>
         <div class="tf-nugget-container">
-            <div class="tf-image-panel">${visualHtml}</div>
+            <div class="tf-image-panel">\${visualHtml}</div>
             <div class="tf-typing-panel">
-                <span class="tf-progress">Insight ${currentNuggetIndex + 1} of ${sessionData.nuggets.length}</span>
-                <div id="tf-target">${charsHtml}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                    <span class="tf-progress" style="margin-bottom:0;">Insight \${currentNuggetIndex + 1} of \${sessionData.nuggets.length}</span>
+                    <button id="tf-skip-btn" style="background:none; border:none; color:#4a8cd4; opacity:0.8; cursor:pointer; font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; transition:color 0.2s;">Skip &rarr;</button>
+                </div>
+                <div id="tf-target" style="white-space: pre-wrap; word-break: break-word;">\${charsHtml}</div>
                 <input type="text" class="tf-hidden-input" id="tf-type-input" autocomplete="off" spellcheck="false" />
             </div>
         </div>
-    `;
+    \`;
 
     document.getElementById('tf-close-btn').addEventListener('click', closeOverlay);
+    document.getElementById('tf-skip-btn').addEventListener('click', () => {
+        currentNuggetIndex++;
+        renderCurrentNugget();
+    });
     
     const targetDiv = document.getElementById('tf-target');
     const input = document.getElementById('tf-type-input');
@@ -175,16 +183,16 @@ function renderCurrentNugget() {
 }
 
 function renderCompletionState() {
-    overlayWrapper.innerHTML = `
+    overlayWrapper.innerHTML = \`
         <div style="max-width:600px; margin: 100px auto; text-align: center;">
             <div style="font-size: 64px; margin-bottom: 20px;">🧠</div>
             <div class="tf-tldr" style="margin: 0 auto; text-align:center;">Session Complete</div>
-            <p style="color:#aaa; font-size:16px; margin-top:16px;">You have actively internalized ${sessionData.nuggets.length} key insights.</p>
+            <p style="color:#aaa; font-size:16px; margin-top:16px;">You have actively internalized \${sessionData.nuggets.length} key insights.</p>
             <button class="tf-export-btn" id="tf-trigger-export">Export to Second Brain 🗂️</button>
             <br>
             <button class="tf-close" style="font-size:14px; text-decoration:underline; border:none; background:none; cursor:pointer;" id="tf-final-close">Return to page</button>
         </div>
-    `;
+    \`;
     
     document.getElementById('tf-final-close').addEventListener('click', closeOverlay);
     document.getElementById('tf-trigger-export').addEventListener('click', exportToMarkdown);
@@ -201,26 +209,26 @@ function exportToMarkdown() {
     const rawTags = sessionData.tags || [];
     const tagsYaml = rawTags.map(t => t.replace('#','')).join(', ');
     
-    let md = `---
-title: "Insights: ${document.title.replace(/"/g, "'")}"
-date: ${d}
-tags: [${tagsYaml}]
-source: ${window.location.href}
+    let md = \`---
+title: "Insights: \${document.title.replace(/"/g, "'")}"
+date: \${d}
+tags: [\${tagsYaml}]
+source: \${window.location.href}
 ---
 
-# ${document.title}
+# \${document.title}
 
-> **TL;DR**: *${sessionData.tldr}*
+> **TL;DR**: *\${sessionData.tldr}*
 
 ## Core Concepts Internalized
-`;
+\`;
 
     sessionData.nuggets.forEach((n, i) => {
-        md += `\n### Insight ${i+1}\n\n`;
-        md += `> ${n.text}\n\n`;
+        md += \`\\n### Insight \${i+1}\\n\\n\`;
+        md += \`> \${n.text}\\n\\n\`;
         if (n.img_src) {
             // Embeds hybrid contextual images (DOM + Gemini Image Gen) natively
-            md += `![Contextual Asset](${n.img_src})\n\n`;
+            md += \`![Contextual Asset](\${n.img_src})\\n\\n\`;
         }
     });
 
@@ -228,7 +236,7 @@ source: ${window.location.href}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Gemini_Insights_${Date.now()}.md`;
+    a.download = \`Gemini_Insights_\${Date.now()}.md\`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
