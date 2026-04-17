@@ -1,3 +1,10 @@
+function isValidHttpUrl(str) {
+    try {
+        const url = new URL(str);
+        return url.protocol === 'https:' || url.protocol === 'http:';
+    } catch { return false; }
+}
+
 // Phase 2: Advanced DOM Extraction for Semantic LLM Structuring
 function extractPageContent() {
     const root = document.querySelector('article, main, [role="main"]') || document.body;
@@ -90,6 +97,28 @@ const INJECT_CSS = `
   .tf-nano-loader { font-size: 12px; color: #E1C04C; animation: pulse 1s infinite; padding: 20px; text-align: center; }
   .tf-export-btn { display: block; padding: 16px 32px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 16px; font-family: 'Menlo', monospace; cursor: pointer; margin: 40px auto 0; transition: all 0.2s; border-radius: 4px; }
   .tf-export-btn:hover { background: rgba(74, 140, 212, 0.2); border-color: #4a8cd4; color: #4a8cd4; }
+
+  .tf-gallery-scroll { overflow-y: auto; flex: 1; padding: 0 40px 60px; }
+  .tf-gallery-hdr { max-width: 1100px; margin: 40px auto 28px; }
+  .tf-gallery-cmd { color: #E1C04C; font-size: 14px; font-family: 'Menlo', monospace; }
+  .tf-gallery-sub { color: #555; font-size: 12px; margin-top: 6px; font-family: 'Menlo', monospace; }
+  .tf-nugget-cards { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .tf-ncard {
+    border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid #E1C04C; border-radius: 6px;
+    background: rgba(255,255,255,0.02); cursor: pointer; overflow: hidden;
+    transition: background 0.15s, border-left-color 0.15s;
+  }
+  .tf-ncard:hover { background: rgba(255,255,255,0.05); border-left-color: #4a8cd4; }
+  .tf-ncard-label {
+    padding: 10px 20px; font-size: 12px; color: #666; border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex; justify-content: space-between; align-items: center; font-family: 'Menlo', monospace;
+  }
+  .tf-ncard-hint { color: #4a8cd4; font-size: 11px; }
+  .tf-ncard-body { display: flex; gap: 20px; padding: 16px 20px; align-items: flex-start; }
+  .tf-ncard-img { flex: 0 0 130px; height: 80px; background: #111; border-radius: 4px; overflow: hidden; }
+  .tf-ncard-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tf-ncard-img-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #2a2a2a; font-size: 24px; }
+  .tf-ncard-text { flex: 1; font-size: 13px; color: #777; line-height: 1.65; }
 `;
 
 function mountUI(data) {
@@ -102,6 +131,79 @@ function mountUI(data) {
     sessionData = data;
 }
 
+function renderNuggetGallery() {
+    overlayWrapper.innerHTML = `
+        <div class="tf-topbar">
+            <div class="tf-dots">
+                <div class="tf-dot tf-dot-r"></div>
+                <div class="tf-dot tf-dot-y"></div>
+                <div class="tf-dot tf-dot-g"></div>
+            </div>
+            <div class="tf-title">~/typingflow</div>
+            <div class="tf-close-box" id="tf-close-btn">&times;</div>
+        </div>
+        <div class="tf-gallery-scroll">
+            <div class="tf-gallery-hdr">
+                <div class="tf-gallery-cmd">$ extract --page-nuggets</div>
+                <div class="tf-gallery-sub" id="tf-gallery-sub"></div>
+            </div>
+            <div class="tf-nugget-cards" id="tf-ncard-list"></div>
+        </div>
+    `;
+
+    document.getElementById('tf-close-btn').addEventListener('click', closeOverlay);
+
+    const sub = document.getElementById('tf-gallery-sub');
+    sub.textContent = `${sessionData.nuggets.length} fragments · click any to type`;
+
+    const list = document.getElementById('tf-ncard-list');
+    sessionData.nuggets.forEach((nugget, i) => {
+        const card = document.createElement('div');
+        card.className = 'tf-ncard';
+
+        const label = document.createElement('div');
+        label.className = 'tf-ncard-label';
+        label.appendChild(document.createTextNode(`[${String(i + 1).padStart(2, '0')}] —`));
+        const hint = document.createElement('span');
+        hint.className = 'tf-ncard-hint';
+        hint.textContent = 'click to type ›';
+        label.appendChild(hint);
+
+        const body = document.createElement('div');
+        body.className = 'tf-ncard-body';
+
+        const imgBox = document.createElement('div');
+        imgBox.className = 'tf-ncard-img';
+        if (nugget.img_src && isValidHttpUrl(nugget.img_src)) {
+            const img = document.createElement('img');
+            img.src = nugget.img_src;
+            img.alt = '';
+            imgBox.appendChild(img);
+        } else {
+            const ph = document.createElement('div');
+            ph.className = 'tf-ncard-img-ph';
+            ph.textContent = '⬡';
+            imgBox.appendChild(ph);
+        }
+
+        const textEl = document.createElement('div');
+        textEl.className = 'tf-ncard-text';
+        textEl.textContent = nugget.text.length > 200 ? nugget.text.slice(0, 200) + '…' : nugget.text;
+
+        body.appendChild(imgBox);
+        body.appendChild(textEl);
+        card.appendChild(label);
+        card.appendChild(body);
+
+        card.addEventListener('click', () => {
+            currentNuggetIndex = i;
+            renderCurrentNugget();
+        });
+
+        list.appendChild(card);
+    });
+}
+
 function openOverlay() {
     if(!sessionData || !sessionData.nuggets || sessionData.nuggets.length === 0) return;
     if (overlayWrapper) overlayWrapper.remove();
@@ -111,7 +213,7 @@ function openOverlay() {
     document.body.style.overflow = 'hidden';
 
     currentNuggetIndex = 0;
-    renderCurrentNugget();
+    renderNuggetGallery();
 }
 
 function renderCurrentNugget() {
@@ -168,6 +270,7 @@ function renderCurrentNugget() {
 
         <div class="tf-stats-bar">
             <div class="tf-nav-btns">
+                <button class="tf-nav-btn" id="tf-all-btn">&#9776; all</button>
                 <button class="tf-nav-btn ${isFirst ? 'disabled' : ''}" id="tf-prev-btn">&larr; prev</button>
                 <button class="tf-nav-btn" id="tf-next-btn">next &rarr;</button>
             </div>
@@ -185,6 +288,7 @@ function renderCurrentNugget() {
     `;
 
     document.getElementById('tf-close-btn').addEventListener('click', closeOverlay);
+    document.getElementById('tf-all-btn').addEventListener('click', renderNuggetGallery);
     document.getElementById('tf-next-btn').addEventListener('click', () => {
         currentNuggetIndex++;
         renderCurrentNugget();
