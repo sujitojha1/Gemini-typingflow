@@ -119,6 +119,12 @@ const INJECT_CSS = `
   .tf-ncard-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .tf-ncard-img-ph { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #2a2a2a; font-size: 24px; }
   .tf-ncard-text { flex: 1; font-size: 13px; color: #777; line-height: 1.65; }
+
+  .tf-gallery-meta { display: flex; align-items: center; gap: 20px; margin-top: 12px; }
+  .tf-stars { color: #E1C04C; font-size: 16px; letter-spacing: 2px; }
+  .tf-coverage { font-size: 12px; color: #555; font-family: 'Menlo', monospace; }
+  .tf-coverage-bar { display: inline-block; width: 80px; height: 4px; background: #222; border-radius: 2px; vertical-align: middle; margin: 0 6px; position: relative; overflow: hidden; }
+  .tf-coverage-fill { position: absolute; left: 0; top: 0; height: 100%; background: #27c93f; border-radius: 2px; }
 `;
 
 function mountUI(data) {
@@ -155,6 +161,36 @@ function renderNuggetGallery() {
 
     const sub = document.getElementById('tf-gallery-sub');
     sub.textContent = `${sessionData.nuggets.length} fragments · click any to type`;
+
+    // Star rating
+    const rating = sessionData.star_rating;
+    if (rating) {
+        const meta = document.createElement('div');
+        meta.className = 'tf-gallery-meta';
+
+        const stars = document.createElement('span');
+        stars.className = 'tf-stars';
+        stars.textContent = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+
+        const coverage = document.createElement('span');
+        coverage.className = 'tf-coverage';
+        const pct = sessionData.coverage_pct ?? null;
+        if (pct !== null) {
+            const bar = document.createElement('span');
+            bar.className = 'tf-coverage-bar';
+            const fill = document.createElement('span');
+            fill.className = 'tf-coverage-fill';
+            fill.style.width = `${pct}%`;
+            bar.appendChild(fill);
+            coverage.appendChild(document.createTextNode('coverage'));
+            coverage.appendChild(bar);
+            coverage.appendChild(document.createTextNode(`${pct}%`));
+        }
+
+        meta.appendChild(stars);
+        if (pct !== null) meta.appendChild(coverage);
+        sub.parentNode.insertBefore(meta, sub.nextSibling);
+    }
 
     const list = document.getElementById('tf-ncard-list');
     sessionData.nuggets.forEach((nugget, i) => {
@@ -225,37 +261,10 @@ function renderCurrentNugget() {
     startTime = null;
     errorsMade = 0;
     const nugget = sessionData.nuggets[currentNuggetIndex];
-    let visualHtml = '';
-    
-    if (nugget.img_src) {
-        visualHtml = `<img src="${nugget.img_src}" alt="Contextual Asset" />`;
-    } else {
-        visualHtml = `<div class="tf-nano-loader" id="tf-nano-${currentNuggetIndex}">🖼️ Rendering visual via Gemini 2.5 Flash Image...</div>`;
-        chrome.runtime.sendMessage({ 
-            action: "generate_image_asset", 
-            payload: { text: nugget.text, tags: sessionData.tags } 
-        }, (resp) => {
-            if (resp && resp.success) {
-                sessionData.nuggets[currentNuggetIndex].img_src = resp.img_src;
-                const imgContainer = document.getElementById(`tf-nano-${currentNuggetIndex}`);
-                if (imgContainer) {
-                    const img = document.createElement('img');
-                    img.src = resp.img_src;
-                    img.style.animation = 'fade-in 0.5s ease-out';
-                    imgContainer.replaceWith(img);
-                }
-            }
-        });
-    }
-
-    let charsHtml = '';
+    const capturedIndex = currentNuggetIndex;
     const textToType = nugget.text.replace(/\s+/g, ' ');
-    
-    for (let i = 0; i < textToType.length; i++) {
-        charsHtml += `<span class="tf-char">${textToType[i]}</span>`;
-    }
-
     const isFirst = currentNuggetIndex === 0;
+    const hasImage = !!nugget.img_src;
 
     overlayWrapper.innerHTML = `
         <div class="tf-topbar">
@@ -278,14 +287,60 @@ function renderCurrentNugget() {
         </div>
 
         <div class="tf-main-container">
-            <div class="tf-image-panel">${visualHtml}</div>
+            <div class="tf-image-panel" id="tf-image-panel-${capturedIndex}"></div>
             <div class="tf-typing-panel">
                 <div class="tf-nugget-name">nugget_${currentNuggetIndex + 1}_of_${sessionData.nuggets.length}.txt</div>
-                <div id="tf-target">${charsHtml}</div>
+                <div id="tf-target"></div>
                 <input type="text" class="tf-hidden-input" id="tf-type-input" autocomplete="off" spellcheck="false" />
             </div>
         </div>
     `;
+
+    // Populate image panel after DOM is set, using captured index to avoid race condition
+    const imagePanel = document.getElementById(`tf-image-panel-${capturedIndex}`);
+    if (hasImage && isValidHttpUrl(nugget.img_src)) {
+        const img = document.createElement('img');
+        img.alt = 'Contextual Asset';
+        img.src = nugget.img_src;
+        imagePanel.appendChild(img);
+    } else if (!hasImage) {
+        const loader = document.createElement('div');
+        loader.className = 'tf-nano-loader';
+        loader.id = `tf-nano-${capturedIndex}`;
+        loader.textContent = '🖼️ Rendering visual via Gemini Flash Image...';
+        imagePanel.appendChild(loader);
+
+        chrome.runtime.sendMessage({
+            action: "generate_image_asset",
+            payload: { text: nugget.text, tags: sessionData.tags }
+        }, (resp) => {
+            console.log("[typingflow] Image response:", resp);
+            const container = document.getElementById(`tf-nano-${capturedIndex}`);
+            if (resp && resp.success && resp.img_src) {
+                sessionData.nuggets[capturedIndex].img_src = resp.img_src;
+                if (container) {
+                    const img = document.createElement('img');
+                    img.alt = 'Contextual Asset';
+                    img.src = resp.img_src;
+                    img.style.animation = 'fade-in 0.5s ease-out';
+                    img.onerror = () => console.error('[typingflow] img.src load failed for:', resp.img_src.slice(0, 60));
+                    container.replaceWith(img);
+                }
+            } else if (container) {
+                container.textContent = '⬡ visual unavailable';
+                console.warn('[typingflow] Image gen failed:', resp?.error);
+            }
+        });
+    }
+
+    // Build char spans via DOM to avoid XSS
+    const targetDiv = document.getElementById('tf-target');
+    for (let i = 0; i < textToType.length; i++) {
+        const span = document.createElement('span');
+        span.className = 'tf-char';
+        span.textContent = textToType[i];
+        targetDiv.appendChild(span);
+    }
 
     document.getElementById('tf-close-btn').addEventListener('click', closeOverlay);
     document.getElementById('tf-all-btn').addEventListener('click', renderNuggetGallery);
@@ -301,11 +356,10 @@ function renderCurrentNugget() {
             renderCurrentNugget();
         });
     }
-    
-    const targetDiv = document.getElementById('tf-target');
+
     const input = document.getElementById('tf-type-input');
     const statsDiv = document.getElementById('tf-stats');
-    
+
     targetDiv.querySelectorAll('.tf-char')[0]?.classList.add('cursor');
     setTimeout(() => input.focus(), 100);
     overlayWrapper.addEventListener('click', () => input.focus());

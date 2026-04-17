@@ -66,6 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnType.disabled = false;
                         btnExtract.innerText = "Extract New Insights";
                         btnExtract.disabled = false;
+                        // Auto-open gallery immediately after mount
+                        chrome.tabs.sendMessage(tabId, { action: "open_overlay" });
+                        window.close();
                     });
                 });
             };
