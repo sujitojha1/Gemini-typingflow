@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnType.addEventListener('click', () => {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (!tabs || tabs.length === 0) return;
             chrome.tabs.sendMessage(tabs[0].id, { action: "open_overlay" }, () => {
                 if (chrome.runtime.lastError) {
                     console.error("Overlay error:", chrome.runtime.lastError.message);

@@ -1,4 +1,18 @@
-// Secure Background Proxy for Google Gemini Flash Lite 3.1 Preview
+const GEMINI_TEXT_MODEL = "gemini-2.0-flash-lite";
+const GEMINI_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation";
+
+function validateSessionData(data) {
+    if (!data || typeof data !== 'object') throw new Error('Response is not an object');
+    if (typeof data.tldr !== 'string' || !data.tldr.trim()) throw new Error('Missing or empty tldr');
+    if (!Array.isArray(data.tags)) throw new Error('tags must be an array');
+    if (!Array.isArray(data.nuggets) || data.nuggets.length === 0) throw new Error('nuggets must be a non-empty array');
+    for (const nugget of data.nuggets) {
+        if (typeof nugget.text !== 'string' || !nugget.text.trim()) throw new Error('Each nugget must have non-empty text');
+        if (nugget.img_src !== null && typeof nugget.img_src !== 'string') throw new Error('nugget img_src must be string or null');
+    }
+}
+
+// Secure Background Proxy for Gemini API
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "proxy_gemini_api") {
         console.log("Routing content to Gemini Flash Lite 3.1 Preview API...");
@@ -36,14 +50,13 @@ EXPECTED JSON SCHEMA:
 }`;
 
 async function callGeminiAPI(payload) {
-    const { geminiApiKey } = await chrome.storage.sync.get('geminiApiKey');
+    const { geminiApiKey } = await chrome.storage.local.get('geminiApiKey');
 
     if (!geminiApiKey) {
         return { error: "API Key not configured. Please initialize your key in the Options panel." };
     }
 
-    const MODEL = "gemini-3.1-flash-lite-preview"; // Invoking the specified Gemini 3.1 Lite Preview model
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TEXT_MODEL}:generateContent?key=${geminiApiKey}`;
 
     const fullPrompt = SYSTEM_PROMPT + "\n\nRAW SCRAPED CONTENT:\n" + JSON.stringify(payload);
 
@@ -63,8 +76,11 @@ async function callGeminiAPI(payload) {
         }
 
         const data = await response.json();
-        const jsonText = data.candidates[0].content.parts[0].text;
-        return { success: true, api_response: JSON.parse(jsonText) };
+        const jsonText = data.candidates[0]?.content?.parts[0]?.text;
+        if (!jsonText) return { error: "Gemini returned an empty response." };
+        const parsed = JSON.parse(jsonText);
+        validateSessionData(parsed);
+        return { success: true, api_response: parsed };
     } catch (error) {
         return { error: `Network exception in Service Worker: ${error.message}` };
     }
@@ -74,11 +90,10 @@ async function callGeminiAPI(payload) {
 async function generateContextualImage({ text, tags }) {
     console.log("Invoking gemini-2.5-flash-image for asset generation...");
     
-    const { geminiApiKey } = await chrome.storage.sync.get('geminiApiKey');
+    const { geminiApiKey } = await chrome.storage.local.get('geminiApiKey');
     if (!geminiApiKey) return { success: false, error: "API Key Missing" };
 
-    const MODEL = "gemini-2.5-flash-image";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${geminiApiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent?key=${geminiApiKey}`;
     const prompt = `Create a visually stunning, premium representative asset or abstract representation for this learning concept. Context: ${text} Tags: ${(tags||[]).join(', ')}. Return nothing but the image URL or Base64 string directly.`;
 
     try {
